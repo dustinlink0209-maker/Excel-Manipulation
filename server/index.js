@@ -18,7 +18,7 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors({
-  origin: /^http:\/\/localhost(:\d+)?$/,
+  origin: process.env.CORS_ORIGIN || /^http:\/\/localhost(:\d+)?$/,
   optionsSuccessStatus: 200,
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -34,6 +34,16 @@ app.use('/api/analyzer', analyzerRouter);
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// Serve frontend in production
+const distPath = path.join(__dirname, '..', 'dist');
+import fs from 'fs';
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
 
 app.listen(PORT, () => {
   console.log(`✅ Excel Manager Pro API running on http://localhost:${PORT}`);
